@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "kodoli-grampanchayat-app",
+    "name": "Grampanchayat Kodoli",
     "slug": "kodoli-grampanchayat-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -35,7 +37,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.mayur25.kodoligrampanchayatapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"

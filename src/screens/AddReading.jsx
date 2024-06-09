@@ -107,12 +107,11 @@ const AddReading = () => {
     setLoading(false);
   };
   const [reading, setReading] = useState("");
-  // useEffect(() => {
-  //   (async () => {
-  //     const { status } = await Camera.requestCameraPermissionsAsync();
-  //     setHasPermission(status === "granted");
-  //   })();
-  // }, []);
+  useEffect(() => {
+    (async () => {
+     await requestPermission()
+    })();
+  }, []);
 
   const addReading = async () => {
     if (readingLoader) {

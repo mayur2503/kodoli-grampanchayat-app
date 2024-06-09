@@ -149,14 +149,14 @@ const CustomerDetailsScreen = () => {
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {customer?.aadhar_no}
+                  {customer?.address}
                 </Text>
               </Box>
             </HStack>
             <HStack space={2} flex={1}>
               <Box>
                 <Text fontSize={16} fontWeight={"bold"} color={"tertiary.700"}>
-                  Group :
+                  Group : 
                 </Text>
               </Box>
               <Box flex={1}>
@@ -166,11 +166,61 @@ const CustomerDetailsScreen = () => {
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {customer?.group}
+                  {customer?.group.name}
                 </Text>
               </Box>
             </HStack>
-            
+            <HStack space={2} flex={1}>
+              <Box>
+                <Text fontSize={16} fontWeight={"bold"} color={"tertiary.700"}>
+                  Connection Type : 
+                </Text>
+              </Box>
+              <Box flex={1}>
+                <Text
+                  fontSize={16}
+                  color={"tertiary.500"}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {customer?.connectiontype.name}
+                </Text>
+              </Box>
+            </HStack>
+            <HStack space={2} flex={1}>
+              <Box>
+                <Text fontSize={16} fontWeight={"bold"} color={"tertiary.700"}>
+                  Water Tank : 
+                </Text>
+              </Box>
+              <Box flex={1}>
+                <Text
+                  fontSize={16}
+                  color={"tertiary.500"}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {customer?.watertank.name}
+                </Text>
+              </Box>
+            </HStack>
+            <HStack space={2} flex={1}>
+              <Box>
+                <Text fontSize={16} fontWeight={"bold"} color={"tertiary.700"}>
+                  Area : 
+                </Text>
+              </Box>
+              <Box flex={1}>
+                <Text
+                  fontSize={16}
+                  color={"tertiary.500"}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {customer?.area.name}
+                </Text>
+              </Box>
+            </HStack>
           </VStack>
         </Box>
         <CollapsibleComponent title={"Reading History"}>

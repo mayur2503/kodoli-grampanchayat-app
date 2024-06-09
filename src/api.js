@@ -3,9 +3,9 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const api = axios.create({
-  baseURL: 'https://gpkodoli.excellentautomationservice.in/api/',
+  baseURL: 'http://192.168.1.8/kodoli/api/',
 });
-
+// baseURL: 'https://gpkodoli.excellentautomationservice.in/api/',
 // Add a request interceptor
 api.interceptors.request.use(
   async (config) => {
