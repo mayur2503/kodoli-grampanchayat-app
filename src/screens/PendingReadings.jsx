@@ -12,36 +12,77 @@ import {
   HStack,
   Pressable,
   Spinner,
+  Center,
 } from "native-base";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
-import { Octicons } from "@expo/vector-icons";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../api";
+import CustomerFilter from "../components/CustomerFilter";
 
 const PendingReadings = () => {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const inputRef = useRef(null);
+  const [filtersLoading, setFiltersLoading] = useState(false);
   const [data, setData] = useState([]);
-  const theme = useTheme();
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const [filterData, setFilterData] = useState([]);
+  const [selectedFilters, setSelectedFilters] = useState({});
 
   useEffect(() => {
     if (isFocused) {
       getPendingReadings();
+      getFilters(selectedFilters);
     }
   }, [isFocused]);
+
+  const handleFilterSelect = (section, item) => {
+    if(selectedFilters[section.title.key] == item.id){
+      setSelectedFilters((prevSelectedItems) => ({
+        ...prevSelectedItems,
+        [section.title.key]: null,
+      }));
+      return
+    }
+    if (section.title.key == "watertank_id") {
+      getFilters({ watertank_id: item.id });
+      setSelectedFilters((prevSelectedItems) => ({
+        ...prevSelectedItems,
+        [section.title.dependant]: null,
+      }));
+    }
+    setSelectedFilters((prevSelectedItems) => ({
+      ...prevSelectedItems,
+      [section.title.key]: item.id,
+    }));
+  };
+
+  useEffect(() => {
+    getPendingReadings()
+  }, [selectedFilters]);
 
   const getPendingReadings = async () => {
     setLoading(true);
     try {
-      const response = await api.get(`reading/pending`);
+      const response = await api.post(`reading/pending`, selectedFilters);
       setData(response.data.data);
     } catch (error) {
       console.log(error.response);
     }
     setLoading(false);
+  };
+
+  const getFilters = async (requestData = {}) => {
+    setFiltersLoading(true);
+    try {
+      const response = await api.post(`filters`, requestData);
+      setFilterData(response.data.data);
+    } catch (error) {
+      console.log(error);
+    }
+    setFiltersLoading(false);
   };
 
   const renderItem = ({ item }) => (
@@ -112,6 +153,14 @@ const PendingReadings = () => {
 
   const renderSeparator = () => <Box height={4} />;
 
+  const openModal = () => {
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
   return (
     <Box safeAreaTop flex={1} bg="background.50">
       <Box p={4} background={"background.700"}>
@@ -130,8 +179,21 @@ const PendingReadings = () => {
               Pending Reading
             </Text>
           </Box>
+          <Box>
+            <Pressable onPress={() => openModal()}>
+              <Icon as={<AntDesign name="filter" />} size={7} color="white" />
+            </Pressable>
+          </Box>
         </HStack>
       </Box>
+      <CustomerFilter
+        visible={modalVisible}
+        onClose={closeModal}
+        filters={filterData}
+        selectedFilters={selectedFilters}
+        handleItemPress={handleFilterSelect}
+        loading={filtersLoading}
+      />
       {loading && <Spinner mt={4} />}
       {!loading && data.length > 0 && (
         <FlatList
@@ -141,6 +203,11 @@ const PendingReadings = () => {
           keyExtractor={(item) => item.id.toString()}
           ItemSeparatorComponent={renderSeparator}
         />
+      )}
+      {!loading && data.length == 0 && (
+        <Center py={6}>
+          <Text>No items to display</Text>
+        </Center>
       )}
     </Box>
   );

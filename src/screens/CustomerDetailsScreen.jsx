@@ -20,6 +20,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import CollapsibleComponent from "../components/CollapsibleComponent";
 import ReadingItem from "../components/ReadingItem";
+import BillItem from "../components/BillItem";
 
 const CustomerDetailsScreen = () => {
   const navigation = useNavigation();
@@ -227,13 +228,19 @@ const CustomerDetailsScreen = () => {
           <VStack space={4}>
             {customer?.readings && customer.readings.length
               ? customer.readings.map((reading) => {
-                  return <ReadingItem reading={reading} />;
+                  return <ReadingItem key={reading.id} reading={reading} />;
                 })
               : null}
           </VStack>
         </CollapsibleComponent>
         <CollapsibleComponent title={"Bill History"}>
-          <VStack space={4}></VStack>
+          <VStack space={4}>
+          {customer?.bills && customer.bills.length
+              ? customer.bills.map((bill) => {
+                  return <BillItem key={bill.id} bill={bill} />;
+                })
+              : null}
+          </VStack>
         </CollapsibleComponent>
       </ScrollView>
     </Box>

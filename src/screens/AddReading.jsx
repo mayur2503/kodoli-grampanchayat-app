@@ -34,13 +34,13 @@ const AddReading = () => {
   const [cameraRef, setCameraRef] = useState(null);
   const [image, setImage] = useState(null);
   const [date, setDate] = useState(new Date());
-  const [mode, setMode] = useState("date");
-  const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const [readingLoader, setReadingLoader] = useState(false);
   const [customerDetails, setCustomerDetails] = useState(null);
   const navigation = useNavigation();
   const [meter_no, setMeterNo] = useState("");
+  const [reading, setReading] = useState("");
+  const [readingDifference, setReadingDifference] = useState("");
   const isFocused = useIsFocused();
   const route = useRoute();
 
@@ -50,11 +50,6 @@ const AddReading = () => {
       searchCustomer(route.params.meter_no);
     }
   }, [isFocused]);
-  const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate;
-    setShow(false);
-    setDate(currentDate);
-  };
 
   const takePicture = async () => {
     if (cameraRef) {
@@ -64,29 +59,12 @@ const AddReading = () => {
     }
   };
 
-  const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    console.log(result);
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
-
   const searchCustomer = async (meter_no = "") => {
     setCustomerDetails(null);
     if (!meter_no) {
       return;
     }
     setLoading(true);
-    // console.log(meter_no)
     try {
       if (customerDetails != null) {
         setCustomerDetails(null);
@@ -100,16 +78,16 @@ const AddReading = () => {
         if (error.response.status == 404) {
           alert("Customer Not found");
         }
-        // console.error('Response status:', error.response.status);
-        // console.error('Response data:', error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
       }
     }
     setLoading(false);
   };
-  const [reading, setReading] = useState("");
+
   useEffect(() => {
     (async () => {
-     await requestPermission()
+      await requestPermission();
     })();
   }, []);
 
@@ -125,13 +103,21 @@ const AddReading = () => {
       alert("Reading is empty");
       return;
     }
+
     const formData = new FormData();
+    if (!customerDetails?.last_reading && readingDifference == "") {
+      alert("Please enter reading difference");
+      return;
+    } else {
+      formData.append("reading_difference", readingDifference);
+    }
     formData.append("reading_image", {
       uri: image,
       name: "photo.jpg",
       type: "image/jpeg",
     });
     formData.append("reading", reading);
+
     formData.append("client_id", customerDetails.id);
     formData.append("reading_month", moment(date).format("MMM"));
     formData.append("reading_year", moment(date).format("YYYY"));
@@ -145,9 +131,13 @@ const AddReading = () => {
       setCustomerDetails(null);
       setImage(null);
       setReading("");
-      console.log(response.data);
+      navigation.goBack()
     } catch (error) {
-      console.log(error);
+      if (error.response) {
+        if (error.response.status == 400) {
+          alert(error.response.data.message);
+        }
+      }
     }
     setReadingLoader(false);
   };
@@ -422,38 +412,32 @@ const AddReading = () => {
                         //   onPress={setShow(true)}
                       />
                     </Box>
-                    <Box>
-                      <Pressable
-                        borderWidth={1}
-                        height={12}
-                        borderRadius="7"
-                        borderColor={"secondary.600"}
-                        py="1"
-                        px="2"
-                        flex={1}
-                        display={"flex"}
-                        justifyContent={"center"}
-                        onPress={() => setShow(true)}
-                      >
-                        <Box>
-                          <Text fontSize={16}>{date.toLocaleDateString()}</Text>
-                        </Box>
-                      </Pressable>
-
-                      {show && (
-                        <DateTimePicker
-                          style={{
-                            width: "100%",
-                            flex: 1,
+                    {!customerDetails?.last_reading && (
+                      <Box>
+                        <Input
+                          width={"100%"}
+                          keyboardType="numeric"
+                          placeholder="Reading Difference"
+                          variant="filled"
+                          value={readingDifference}
+                          borderRadius="10"
+                          borderColor={"secondary.600"}
+                          bg="background.50"
+                          py="1"
+                          px="2"
+                          height="12"
+                          _web={{
+                            _focus: { borderColor: "muted.300" },
                           }}
-                          testID="dateTimePicker"
-                          value={date}
-                          mode={mode}
-                          is24Hour={true}
-                          onChange={onChange}
+                          onChangeText={setReadingDifference}
+                          //   onPress={setShow(true)}
                         />
-                      )}
-                    </Box>
+                        <Text fontSize={10} color={"danger.600"}>
+                          No previous reading available. Please enter reading
+                          difference
+                        </Text>
+                      </Box>
+                    )}
                     <Box>
                       <Button onPress={addReading} colorScheme={"secondary"}>
                         {readingLoader ? <Spinner /> : "Add Reading"}

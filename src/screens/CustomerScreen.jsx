@@ -17,6 +17,8 @@ import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { Octicons } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../api";
+import CustomerFilter from "../components/CustomerFilter";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 const CustomerScreen = () => {
   const navigation = useNavigation();
@@ -25,21 +27,25 @@ const CustomerScreen = () => {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
   const [data, setData] = useState([]);
-  const theme = useTheme();
+
+  const [filtersLoading, setFiltersLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [filterData, setFilterData] = useState([]);
+  const [selectedFilters, setSelectedFilters] = useState({});
 
   useEffect(() => {
-    if (isFocused && inputRef.current) {
-      inputRef.current.focus();
+    if (isFocused) {
+      getFilters(selectedFilters);
     }
   }, [isFocused]);
 
   const searchCustomer = async () => {
     setLoading(true);
     try {
-      const response = await api.get(`search/customer?keyword=${searchQuery}`);
+      const response = await api.post(`search/customer?keyword=${searchQuery}`,selectedFilters);
       setData(response.data.data);
     } catch (error) {
-      console.log(error.response)
+      console.log(error.response);
     }
     setLoading(false);
   };
@@ -110,7 +116,51 @@ const CustomerScreen = () => {
     </Box>
   );
 
+  const handleFilterSelect = (section, item) => {
+    if(selectedFilters[section.title.key] == item.id){
+      setSelectedFilters((prevSelectedItems) => ({
+        ...prevSelectedItems,
+        [section.title.key]: null,
+      }));
+      return
+    }
+    if (section.title.key == "watertank_id") {
+      getFilters({ watertank_id: item.id });
+      setSelectedFilters((prevSelectedItems) => ({
+        ...prevSelectedItems,
+        [section.title.dependant]: null,
+      }));
+    }
+    setSelectedFilters((prevSelectedItems) => ({
+      ...prevSelectedItems,
+      [section.title.key]: item.id,
+    }));
+  };
+
+  useEffect(() => {
+    searchCustomer();
+  }, [selectedFilters]);
+
   const renderSeparator = () => <Box height={4} />;
+
+  const getFilters = async (requestData = {}) => {
+    setFiltersLoading(true);
+    try {
+      const response = await api.post(`filters`, requestData);
+      setFilterData(response.data.data);
+    } catch (error) {
+      console.log(error);
+    }
+    setFiltersLoading(false);
+  };
+
+  const openModal = () => {
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
 
   return (
     <Box safeAreaTop flex={1} bg="background.50">
@@ -141,16 +191,35 @@ const CustomerScreen = () => {
             />
           </Box>
           <Box>
-            <Pressable onPress={() => searchCustomer()}>
-              <Icon
-                as={<Octicons name="search" size={24} color="black" />}
-                size={7}
-                color="white"
-              />
-            </Pressable>
+            <HStack space={2}>
+              <Pressable onPress={() => searchCustomer()}>
+                <Icon
+                  as={<Octicons name="search" size={24} color="black" />}
+                  size={7}
+                  color="white"
+                />
+              </Pressable>
+              <Box>
+                <Pressable onPress={() => openModal()}>
+                  <Icon
+                    as={<AntDesign name="filter" />}
+                    size={7}
+                    color="white"
+                  />
+                </Pressable>
+              </Box>
+            </HStack>
           </Box>
         </HStack>
       </Box>
+      <CustomerFilter
+        visible={modalVisible}
+        onClose={closeModal}
+        filters={filterData}
+        selectedFilters={selectedFilters}
+        handleItemPress={handleFilterSelect}
+        loading={filtersLoading}
+      />
       {loading && <Spinner mt={4} />}
       {!loading && data.length > 0 && (
         <FlatList
