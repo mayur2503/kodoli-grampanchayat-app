@@ -119,6 +119,7 @@ const LoginScreen = ({ navigation }) => {
                 >
                   {loading ? <Spinner /> : <Text color="white">Login</Text>}
                 </Button>
+                <Center><Text>{process.env.EXPO_PUBLIC_ENVIRONMENT=='development'?process.env.EXPO_PUBLIC_ENVIRONMENT:null}</Text></Center>
               </VStack>
             </Box>
           </Center>

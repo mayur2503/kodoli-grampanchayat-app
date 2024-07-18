@@ -1,6 +1,6 @@
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
-import { Box, Text } from "native-base";
+import { Box, Text ,Center} from "native-base";
 import Entypo from "@expo/vector-icons/Entypo";
 import { Octicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -87,6 +87,7 @@ const HomeScreen = () => {
             Logout
           </Text>
         </TouchableOpacity>
+        <Center><Text>{process.env.EXPO_PUBLIC_ENVIRONMENT=='development'?process.env.EXPO_PUBLIC_ENVIRONMENT:null}</Text></Center>
       </Box>
     </Box>
   );

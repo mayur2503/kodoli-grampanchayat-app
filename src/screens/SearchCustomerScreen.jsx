@@ -1,4 +1,4 @@
-// PendingReadings.js
+// SearchCustomerScreen.js
 import React, { useState, useRef, useEffect } from "react";
 import { FlatList } from "react-native";
 import {
@@ -12,70 +12,40 @@ import {
   HStack,
   Pressable,
   Spinner,
-  Center,
 } from "native-base";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { Octicons } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../api";
 import CustomerFilter from "../components/CustomerFilter";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
-const PendingReadings = () => {
+const SearchCustomerScreen = () => {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [filtersLoading, setFiltersLoading] = useState(false);
+  const inputRef = useRef(null);
   const [data, setData] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
 
+  const [filtersLoading, setFiltersLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [filterData, setFilterData] = useState([]);
   const [selectedFilters, setSelectedFilters] = useState({});
 
   useEffect(() => {
     if (isFocused) {
-      getPendingReadings();
       getFilters(selectedFilters);
     }
   }, [isFocused]);
 
-  const handleFilterSelect = (section, item) => {
-    if (
-      selectedFilters[section.title.key] == item.id &&
-      section.title.dependant
-    ) {
-      setSelectedFilters((prevSelectedItems) => ({
-        ...prevSelectedItems,
-        [section.title.dependant]: null,
-        [section.title.key]: null,
-      }));
-      getFilters();
-      return;
-    } else if (
-      selectedFilters[section.title.key] != item.id &&
-      section.title.dependant
-    ) {
-      setSelectedFilters((prevSelectedItems) => ({
-        ...prevSelectedItems,
-        [section.title.dependant]: null,
-        [section.title.key]: item.id,
-      }));
-      getFilters({ [section.title.key]: item.id });
-    } else {
-      setSelectedFilters((prevSelectedItems) => ({
-        ...prevSelectedItems,
-        [section.title.key]: item.id,
-      }));
-    }
-  };
-
-  useEffect(() => {
-    getPendingReadings()
-  }, [selectedFilters]);
-
-  const getPendingReadings = async () => {
+  const searchCustomer = async () => {
     setLoading(true);
     try {
-      const response = await api.post(`reading/pending`, selectedFilters);
+      const response = await api.post(
+        `search/customer?keyword=${searchQuery}`,
+        selectedFilters
+      );
       setData(response.data.data);
     } catch (error) {
       console.log(error.response);
@@ -83,23 +53,12 @@ const PendingReadings = () => {
     setLoading(false);
   };
 
-  const getFilters = async (requestData = {}) => {
-    setFiltersLoading(true);
-    try {
-      const response = await api.post(`filters`, requestData);
-      setFilterData(response.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-    setFiltersLoading(false);
-  };
-
   const renderItem = ({ item }) => (
     <Box bg="tertiary.50" p={3} borderRadius="md" borderColor={"secondary.600"}>
       <Pressable
         onPress={() =>
-          navigation.navigate("AddReading", {
-            meter_no: item.meter_no,
+          navigation.navigate("CustomerDetails", {
+            customer: item,
           })
         }
       >
@@ -160,7 +119,54 @@ const PendingReadings = () => {
     </Box>
   );
 
+  const handleFilterSelect = (section, item) => {
+    if (
+      selectedFilters[section.title.key] == item.id &&
+      section.title.dependant
+    ) {
+      setSelectedFilters((prevSelectedItems) => ({
+        ...prevSelectedItems,
+        [section.title.dependant]: null,
+        [section.title.key]: null,
+      }));
+      getFilters();
+      return;
+    } else if (
+      selectedFilters[section.title.key] != item.id &&
+      section.title.dependant
+    ) {
+      setSelectedFilters((prevSelectedItems) => ({
+        ...prevSelectedItems,
+        [section.title.dependant]: null,
+        [section.title.key]: item.id,
+      }));
+      getFilters({ [section.title.key]: item.id });
+    } else {
+      setSelectedFilters((prevSelectedItems) => ({
+        ...prevSelectedItems,
+        [section.title.key]: item.id,
+      }));
+    }
+  };
+
+  useEffect(() => {
+    if (Object.keys(selectedFilters).length !== 0) {
+      searchCustomer();
+    }
+  }, [selectedFilters]);
+
   const renderSeparator = () => <Box height={4} />;
+
+  const getFilters = async (requestData = {}) => {
+    setFiltersLoading(true);
+    try {
+      const response = await api.post(`filters`, requestData);
+      setFilterData(response.data.data);
+    } catch (error) {
+      console.log(error);
+    }
+    setFiltersLoading(false);
+  };
 
   const openModal = () => {
     setModalVisible(true);
@@ -173,7 +179,7 @@ const PendingReadings = () => {
   return (
     <Box safeAreaTop flex={1} bg="background.50">
       <Box p={4} background={"background.700"}>
-        <HStack alignItems="center" space={4}>
+        <HStack alignItems="center">
           <Box>
             <Pressable onPress={() => navigation.goBack()}>
               <Icon
@@ -184,14 +190,39 @@ const PendingReadings = () => {
             </Pressable>
           </Box>
           <Box flex={1}>
-            <Text fontSize={16} color={"white"}>
-              Pending Reading
-            </Text>
+            <Input
+              color={"white"}
+              ref={inputRef}
+              placeholder="Search ..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              variant="unstyled"
+              bg="transparent"
+              py="0"
+              px="2"
+              fontSize={20}
+              placeholderTextColor={"white"}
+            />
           </Box>
           <Box>
-            <Pressable onPress={() => openModal()}>
-              <Icon as={<AntDesign name="filter" />} size={7} color="white" />
-            </Pressable>
+            <HStack space={2}>
+              <Pressable onPress={() => searchCustomer()}>
+                <Icon
+                  as={<Octicons name="search" size={24} color="black" />}
+                  size={7}
+                  color="white"
+                />
+              </Pressable>
+              <Box>
+                <Pressable onPress={() => openModal()}>
+                  <Icon
+                    as={<AntDesign name="filter" />}
+                    size={7}
+                    color="white"
+                  />
+                </Pressable>
+              </Box>
+            </HStack>
           </Box>
         </HStack>
       </Box>
@@ -213,13 +244,8 @@ const PendingReadings = () => {
           ItemSeparatorComponent={renderSeparator}
         />
       )}
-      {!loading && data.length == 0 && (
-        <Center py={6}>
-          <Text>No items to display</Text>
-        </Center>
-      )}
     </Box>
   );
 };
 
-export default PendingReadings;
+export default SearchCustomerScreen;

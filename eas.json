@@ -5,14 +5,26 @@
   "build": {
     "development": {
       "distribution": "internal",
-      "android":{
-        "buildType":"apk"
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://dev.grampanchayatkodoli.com/api/",
+        "EXPO_PUBLIC_ENVIRONMENT": "development"
       }
     },
     "preview": {
       "distribution": "internal"
     },
-    "production": {}
+    "production": {
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://billing.grampanchayatkodoli.com/api/",
+        "EXPO_PUBLIC_ENVIRONMENT": "production"
+      }
+    }
   },
   "submit": {
     "production": {}
