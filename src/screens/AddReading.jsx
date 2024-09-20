@@ -148,6 +148,20 @@ const AddReading = () => {
     setReadingLoader(false);
   };
 
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    console.log(result);
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
   return (
     <Box safeAreaTop bg="background.50" style={{ flex: 1 }}>
       {isCameraOn ? (
@@ -394,6 +408,19 @@ const AddReading = () => {
                             borderColor={"secondary.600"}
                           >
                             <Feather name="camera" size={30} color="#1a7f96" />
+                          </Box>
+                        </Pressable>
+                        <Pressable flex={1} onPress={() => pickImage()}>
+                          <Box
+                            justifyContent={"center"}
+                            alignItems={"center"}
+                            height={40}
+                            borderWidth={2}
+                            flex={1}
+                            rounded={"md"}
+                            borderColor={"secondary.600"}
+                          >
+                            <AntDesign name="file1" size={30} color="#1a7f96" />
                           </Box>
                         </Pressable>
                       </HStack>
