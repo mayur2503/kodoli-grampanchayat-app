@@ -30,6 +30,8 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 
 const validationSchema = Yup.object().shape({
+  no_of_flats: Yup.string().required("No Of flats"),
+  profile_type: Yup.string().required("Profile Type"),
   contact_name: Yup.string().required("Contact Name is required"),
   watertank_id: Yup.string().required("Water Tank is required"),
   area_id: Yup.string().required("Area is required"),
@@ -107,12 +109,14 @@ const AddCustomerScreen = () => {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{
             flex: 1,
+            marginBottom: 5,
           }}
         >
           <ScrollView flex={1}>
             <VStack p={5} space={5}>
               <Formik
                 initialValues={{
+                  profile_type: "Individual",
                   contact_name: "",
                   watertank_id: "",
                   area_id: "",
@@ -126,7 +130,6 @@ const AddCustomerScreen = () => {
                 }}
                 validationSchema={validationSchema}
                 onSubmit={async (values) => {
-                  console.log("test")
                   setLoading(true);
                   try {
                     const response = await api.post("customer", values);
@@ -148,6 +151,55 @@ const AddCustomerScreen = () => {
                   setFieldValue,
                 }) => (
                   <VStack space={4}>
+                    <FormControl
+                      isInvalid={touched.profile_type && !!errors.profile_type}
+                    >
+                      <FormControl.Label>Profile Type</FormControl.Label>
+                      <Select
+                        height={10}
+                        selectedValue={values.profile_type}
+                        minWidth={200}
+                        accessibilityLabel="Choose Profile Type"
+                        placeholder="Choose Profile Type"
+                        _selectedItem={{
+                          bg: "teal.600",
+                          endIcon: <CheckIcon size={5} />,
+                        }}
+                        mt={1}
+                        onValueChange={(itemValue) => {
+                          setFieldValue("profile_type", itemValue);
+                        }}
+                      >
+                        <Select.Item
+                          label={"Individual"}
+                          value={"Individual"}
+                        />
+                        <Select.Item
+                          label={"Appartment"}
+                          value={"Appartment"}
+                        />
+                      </Select>
+                      {touched.profile_type && errors.profile_type && (
+                        <Text color="red.500">{errors.profile_type}</Text>
+                      )}
+                    </FormControl>
+                    {values.profile_type == "Appartment" ? (
+                      <FormControl
+                        isInvalid={touched.no_of_flats && !!errors.no_of_flats}
+                      >
+                        <FormControl.Label>No Of Flats</FormControl.Label>
+                        <Input
+                          height={10}
+                          keyboardType="numeric"
+                          onChangeText={handleChange("no_of_flats")}
+                          onBlur={handleBlur("no_of_flats")}
+                          value={values.no_of_flats}
+                        />
+                        {touched.no_of_flats && errors.no_of_flats && (
+                          <Text color="red.500">{errors.no_of_flats}</Text>
+                        )}
+                      </FormControl>
+                    ) : null}
                     <FormControl
                       isInvalid={touched.contact_name && !!errors.contact_name}
                     >

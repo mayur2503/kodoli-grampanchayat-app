@@ -12,6 +12,8 @@ import {
   Button,
   Spinner,
   Image,
+  Checkbox,
+  TextArea,
 } from "native-base";
 import {
   useIsFocused,
@@ -40,6 +42,8 @@ const AddReading = () => {
   const navigation = useNavigation();
   const [meter_no, setMeterNo] = useState("");
   const [reading, setReading] = useState("");
+  const [defective_meter, setDefectiveMeter] = useState(false);
+  const [defectDetails, setDefectDetails] = useState("");
   const [readingDifference, setReadingDifference] = useState("");
   const isFocused = useIsFocused();
   const route = useRoute();
@@ -121,6 +125,8 @@ const AddReading = () => {
     formData.append("client_id", customerDetails.id);
     formData.append("reading_month", moment(date).format("MMM"));
     formData.append("reading_year", moment(date).format("YYYY"));
+    formData.append("defective_meter", defective_meter ? 1 : 0);
+    formData.append("defect_details", defectDetails);
     setReadingLoader(true);
     try {
       const response = await api.post("reading/add", formData, {
@@ -131,7 +137,7 @@ const AddReading = () => {
       setCustomerDetails(null);
       setImage(null);
       setReading("");
-      navigation.goBack()
+      navigation.goBack();
     } catch (error) {
       if (error.response) {
         if (error.response.status == 400) {
@@ -438,6 +444,39 @@ const AddReading = () => {
                         </Text>
                       </Box>
                     )}
+                    <Box>
+                      <Checkbox
+                        isChecked={defective_meter}
+                        onChange={() => {
+                          if (defective_meter) {
+                            setDefectDetails("");
+                          }
+                          setDefectiveMeter(!defective_meter);
+                        }}
+                      >
+                        <Text>Defective meter ?</Text>
+                      </Checkbox>
+                    </Box>
+                    {defective_meter ? (
+                      <Box>
+                        <TextArea
+                          width={"100%"}
+                          placeholder="Enter defect details"
+                          variant="filled"
+                          value={defectDetails}
+                          borderRadius="10"
+                          borderColor={"secondary.600"}
+                          bg="background.50"
+                          py="1"
+                          px="2"
+                          _web={{
+                            _focus: { borderColor: "muted.300" },
+                          }}
+                          onChangeText={setDefectDetails}
+                          //   onPress={setShow(true)}
+                        />
+                      </Box>
+                    ) : null}
                     <Box>
                       <Button onPress={addReading} colorScheme={"secondary"}>
                         {readingLoader ? <Spinner /> : "Add Reading"}
